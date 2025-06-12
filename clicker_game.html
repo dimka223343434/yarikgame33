@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Кликер с Яриком</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #ffdde1, #ee9ca7);
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      padding: 30px;
+      margin: 0;
+    }
+    h1 {
+      font-size: 2.5em;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    #click-img {
+      width: 200px;
+      max-width: 90vw;
+      cursor: pointer;
+      transition: transform 0.2s;
+      user-select: none;
+    }
+    #click-img:active {
+      transform: scale(1.1);
+    }
+    #counter {
+      font-size: 2em;
+      margin: 15px 0;
+      color: #222;
+      user-select: none;
+    }
+    #auto-click-info {
+      font-size: 1.2em;
+      margin: 10px 0 15px;
+      color: #444;
+    }
+    button, input[type="text"] {
+      padding: 10px 20px;
+      border-radius: 20px;
+      border: none;
+      font-size: 1em;
+      margin: 5px;
+    }
+    button {
+      background: #ff4b2b;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background: #e04326;
+    }
+    input[type="text"] {
+      width: 220px;
+      max-width: 90vw;
+      border: 2px solid #ff4b2b;
+      outline: none;
+    }
+    #upgrade-btn {
+      background: #28a745;
+    }
+    #upgrade-btn:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <h1>Кликер с Яриком</h1>
+  <div id="counter">Клики: 0</div>
+  <img id="click-img" src="" alt="clickable image" draggable="false"/>
+  <div id="auto-click-info">Пассивный доход: 0 кликов/сек</div>
+  <button id="upgrade-btn" title="Улучшить пассивный доход за 100 кликов">Улучшить пассивный доход (+1 клик/сек)</button>
+  <br />
+  <input id="promo" type="text" placeholder="Введите промокод" />
+  <button onclick="redeemPromo()">Активировать</button>
+  <button id="reset-btn" style="background:#555;">Сбросить счёт</button>
+
+  <script>
+    let clicks = 0;
+    let autoClicksPerSec = 0;
+    let upgradeCost = 100;
+
+    const img = document.getElementById('click-img');
+    const counter = document.getElementById('counter');
+    const promoInput = document.getElementById('promo');
+    const autoClickInfo = document.getElementById('auto-click-info');
+    const upgradeBtn = document.getElementById('upgrade-btn');
+    const resetBtn = document.getElementById('reset-btn');
+
+    // Определяем устройство
+    function isMobile() {
+      return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    }
+
+    const basePath = 'files/';
+
+    const skins = [
+      { clicks: 0, src: basePath + 'pig.jpg' },
+      { clicks: 15, src: basePath + 'yarik.jpg' },
+      { clicks: 20, src: basePath + 'yarikkanava.jpg' },
+      { clicks: 50, src: basePath + 'babkayarika.jpg' },
+      { clicks: 100, src: basePath + 'abay.jpg' },
+      { clicks: 200, src: basePath + 'ded.jpg' }
+    ];
+
+    const promos = {
+      'bonus10': 10,
+      'yarikpower': 50,
+      'megaauto': 5
+    };
+
+    function initSkin() {
+      img.src = skins[0].src;
+      if (isMobile()) {
+        img.style.width = '150px';
+      } else {
+        img.style.width = '200px';
+      }
+    }
+
+    function updateSkin() {
+      for (let i = skins.length - 1; i >= 0; i--) {
+        if (clicks >= skins[i].clicks) {
+          img.src = skins[i].src;
+          break;
+        }
+      }
+    }
+
+    function updateCounter() {
+      counter.innerText = `Клики: ${clicks}`;
+    }
+
+    function updateAutoClickInfo() {
+      autoClickInfo.innerText = `Пассивный доход: ${autoClicksPerSec} кликов/сек (следующее улучшение: ${upgradeCost} кликов)`;
+    }
+
+    img.onclick = () => {
+      clicks++;
+      updateCounter();
+      updateSkin();
+    };
+
+    upgradeBtn.onclick = () => {
+      if (clicks >= upgradeCost) {
+        clicks -= upgradeCost;
+        autoClicksPerSec++;
+        upgradeCost = Math.floor(upgradeCost * 1.5);
+        updateCounter();
+        updateAutoClickInfo();
+      } else {
+        alert(`Недостаточно кликов. Нужно ${upgradeCost} для улучшения.`);
+      }
+    };
+
+    resetBtn.onclick = () => {
+      if (confirm('Вы уверены, что хотите сбросить счёт?')) {
+        clicks = 0;
+        autoClicksPerSec = 0;
+        upgradeCost = 100;
+        updateCounter();
+        updateSkin();
+        updateAutoClickInfo();
+      }
+    };
+
+    function redeemPromo() {
+      const code = promoInput.value.toLowerCase();
+      if (promos[code]) {
+        clicks += promos[code];
+        updateCounter();
+        updateSkin();
+        alert(`Промокод активирован! +${promos[code]} кликов`);
+      } else {
+        alert('Неверный промокод');
+      }
+      promoInput.value = '';
+    }
+
+    // Автоматический прирост кликов каждую секунду
+    setInterval(() => {
+      if (autoClicksPerSec > 0) {
+        clicks += autoClicksPerSec;
+        updateCounter();
+        updateSkin();
+      }
+    }, 1000);
+
+    // Запуск
+    initSkin();
+    updateCounter();
+    updateAutoClickInfo();
+
+  </script>
+</body>
+</html>
+
